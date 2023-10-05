@@ -2,3 +2,4 @@ screenshots/*
 !screenshots/.gitkeep
 
 .env
+chrome.log
