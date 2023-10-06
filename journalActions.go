@@ -110,6 +110,44 @@ func chooseDiscipline(disciplineId uint, semester uint) (err error) {
 	return err
 }
 
+func openLessonPopup(lessonDate time.Time) (err error) {
+	lessonSelector := fmt.Sprintf(
+		`//table[@id="mMarks"]//th[contains(., "%s")][last()]//a[contains(text(), "%s")]`,
+		lessonDate.Format("02.01.2006"), lessonDate.Format("02.01.2006"),
+	)
+
+	ctx, cancel := context.WithTimeout(chromeCtx, time.Second*5)
+	defer cancel()
+
+	err = chromedp.Run(ctx, chromedp.Tasks{
+		chromedp.Click(lessonSelector),
+		chromedp.WaitVisible(`//*[contains(@class, "modal-title")][contains(text(), "Дії для заняття")]`),
+		chromedp.Sleep(time.Millisecond * 400),
+	})
+
+	return err
+}
+
+func verifyLessonForm(t *testing.T, expectedGroupName string, expectedDisciplineName string) {
+	var currentGroup string
+	var currentDiscipline string
+
+	ctx, cancel := context.WithTimeout(chromeCtx, time.Millisecond*300)
+	defer cancel()
+
+	err := chromedp.Run(ctx, chromedp.Tasks{
+		chromedp.Text(`//*[contains(text(), "Академічна група")]`, &currentGroup),
+		chromedp.Text(`//*[contains(text(), "Дисципліна")]`, &currentDiscipline),
+	})
+
+	if !assert.NoError(t, err, "Failed to get current group and discipline") {
+		return
+	}
+
+	assert.Contains(t, currentGroup, teacherSession.GroupName, "Wrong group name")
+	assert.Contains(t, currentDiscipline, teacherSession.DisciplineName, "Wrong discipline name")
+}
+
 func findVisibleForm(selector string) *cdp.Node {
 	var formNodes []*cdp.Node
 

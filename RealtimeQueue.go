@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+	"time"
 )
 
 type RealtimeQueue struct {
@@ -37,11 +38,24 @@ func CreateRealtimeQueue(t *testing.T) *RealtimeQueue {
 
 	client := sqs.NewFromConfig(awsCfg)
 
-	return &RealtimeQueue{
+	queue := &RealtimeQueue{
 		client:      client,
 		sqsQueueUrl: &config.sqsQueueUrl,
 		t:           t,
 	}
+
+	go (func() {
+		var event interface{}
+		event = struct{}{}
+		for event != nil {
+			// fetch and delete all messages from queue
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+			event = queue.Fetch(ctx)
+			cancel()
+		}
+	})()
+
+	return queue
 }
 
 func (queue *RealtimeQueue) Fetch(context context.Context) (event interface{}) {
