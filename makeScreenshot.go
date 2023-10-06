@@ -4,6 +4,7 @@ import (
 	"github.com/chromedp/chromedp"
 	"log"
 	"os"
+	"time"
 )
 
 const screenshotDir = "screenshots"
@@ -23,7 +24,9 @@ func makeScreenshot(name string) {
 		log.Fatal(err)
 	}
 
-	err = os.WriteFile(screenshotDir+"/"+name+".png", imgBuf, 0o644)
+	t := time.Now().Format("2006-01-02-15-04-05_")
+
+	err = os.WriteFile(screenshotDir+"/"+t+name+".png", imgBuf, 0o644)
 	if err != nil {
 		log.Fatal(err)
 	}

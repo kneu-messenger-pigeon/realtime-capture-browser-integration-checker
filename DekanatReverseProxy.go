@@ -21,6 +21,8 @@ var templates embed.FS
 
 var LastReverseProxyPort = uint32(8090 - 1)
 
+type RewriteBodyFunc func(body []byte) []byte
+
 type DekanatReverseProxy struct {
 	Offline bool
 
@@ -31,9 +33,12 @@ type DekanatReverseProxy struct {
 	ProxyOriginBytes []byte
 
 	BlockedRequests []*http.Request
+
+	ReverseProxy *httputil.ReverseProxy
+	RewriteBody  RewriteBodyFunc
 }
 
-func NewReverseProxy(remoteOrigin string) *DekanatReverseProxy {
+func NewReverseProxy(remoteOrigin string, rewriteBody RewriteBodyFunc) *DekanatReverseProxy {
 	gin.SetMode(gin.ReleaseMode)
 
 	remote, _ := url.Parse(remoteOrigin)
@@ -48,7 +53,7 @@ func NewReverseProxy(remoteOrigin string) *DekanatReverseProxy {
 
 	proxyOrigin := "http://" + hostname + ":" + stringPort
 
-	reverseProxy := &DekanatReverseProxy{
+	proxy := &DekanatReverseProxy{
 		Offline:           false,
 		RemoteUrl:         remote,
 		RemoteOriginBytes: []byte(remoteOrigin),
@@ -57,17 +62,22 @@ func NewReverseProxy(remoteOrigin string) *DekanatReverseProxy {
 		ProxyOriginBytes: []byte(proxyOrigin),
 
 		BlockedRequests: make([]*http.Request, 0, 20),
+
+		ReverseProxy: httputil.NewSingleHostReverseProxy(remote),
+		RewriteBody:  rewriteBody,
 	}
 
-	r := gin.Default()
+	proxy.ReverseProxy.ModifyResponse = proxy.rewriteBody
+
+	r := gin.New()
 	r.SetHTMLTemplate(
 		template.Must(template.New("").ParseFS(templates, "templates/*.html")),
 	)
-	r.Any("/*proxyPath", reverseProxy.proxyAction)
+	r.Any("/*proxyPath", proxy.proxyAction)
 
 	go r.Run(":" + stringPort)
 
-	return reverseProxy
+	return proxy
 }
 
 func (reverseProxy *DekanatReverseProxy) proxyAction(c *gin.Context) {
@@ -89,27 +99,29 @@ func (reverseProxy *DekanatReverseProxy) proxyAction(c *gin.Context) {
 	}
 
 	if c.Request.Method == "POST" {
-		if c.Request.URL.Query().Get("n") == "1" && strings.HasSuffix(c.Request.URL.Path, "kaf.cgi") {
-			fmt.Println("[proxy] Allowed post login request", c.Request.RequestURI)
-			// allow login action
-		} else {
+		b, _ := io.ReadAll(c.Request.Body) //Read html
+		_ = c.Request.Body.Close()
+		c.Request.Body = io.NopCloser(bytes.NewReader(b))
+		postForm, _ := url.ParseQuery(string(b))
+
+		isLoginRequest := c.Query("n") == "1" && strings.HasSuffix(c.Request.URL.Path, "kaf.cgi")
+		isDisciplineResultPage := postForm.Get("n") == "7" && strings.HasSuffix(c.Request.URL.Path, "teachers.cgi")
+
+		if !isLoginRequest && !isDisciplineResultPage {
 			fmt.Println("[proxy] Blocked post request", c.Request.RequestURI)
 			reverseProxy.blockAction(c, "post request")
 			return
 		}
+
+		if isLoginRequest {
+			fmt.Println("[proxy] Allowed post login request", c.Request.RequestURI)
+		}
+		if isDisciplineResultPage {
+			fmt.Println("[proxy] Allowed post to discipline result page", c.Request.RequestURI)
+		}
 	}
 
-	proxy := httputil.NewSingleHostReverseProxy(reverseProxy.RemoteUrl)
-	proxy.ModifyResponse = reverseProxy.rewriteBody
-	proxy.Director = func(req *http.Request) {
-		req.URL.Path = c.Request.URL.Path
-		req.Header = c.Request.Header
-		req.Host = reverseProxy.RemoteUrl.Host
-		req.URL.Scheme = reverseProxy.RemoteUrl.Scheme
-		req.URL.Host = reverseProxy.RemoteUrl.Host
-	}
-
-	proxy.ServeHTTP(c.Writer, c.Request)
+	reverseProxy.ReverseProxy.ServeHTTP(c.Writer, c.Request)
 }
 
 func (reverseProxy *DekanatReverseProxy) blockAction(c *gin.Context, reason string) {
@@ -133,6 +145,11 @@ func (reverseProxy *DekanatReverseProxy) rewriteBody(resp *http.Response) (err e
 
 	// rewrite host
 	b = bytes.Replace(b, reverseProxy.RemoteOriginBytes, reverseProxy.ProxyOriginBytes, -1)
+
+	if reverseProxy.RewriteBody != nil {
+		b = reverseProxy.RewriteBody(b)
+	}
+
 	body := io.NopCloser(bytes.NewReader(b))
 	resp.Body = body
 	resp.ContentLength = int64(len(b))

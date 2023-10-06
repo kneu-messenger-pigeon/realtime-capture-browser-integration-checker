@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/chromedp/chromedp"
@@ -19,9 +20,11 @@ var chromeCtx context.Context
 
 var dekanatRepository *DekanatRepository
 
+var dekanatReverseProxy *DekanatReverseProxy
+
 var teacherSession = &TeacherSession{}
 
-var dekanatReverseProxy *DekanatReverseProxy
+var realtimeQueue = &RealtimeQueue{}
 
 func main() {
 	var err error
@@ -34,7 +37,9 @@ func main() {
 
 	config, err = loadConfig(envFilename)
 
-	dekanatReverseProxy = NewReverseProxy(config.dekenatWebHost)
+	dekanatReverseProxy = NewReverseProxy(config.dekenatWebHost, func(body []byte) []byte {
+		return bytes.ReplaceAll(body, config.scriptProdPublicUrl, config.scriptPublicUrl)
+	})
 
 	// create context
 	chromeCtx, cancel = createChromeContext(config.chromeWsUrl)
@@ -52,32 +57,38 @@ func main() {
 		log.Fatal("Teacher with active lesson not found")
 	}
 
-	fmt.Printf("Teacher with active lesson: %+v", teacherWithActiveLesson)
+	fmt.Printf("Teacher with active lesson: %+v\n", teacherWithActiveLesson)
 
-	teacherSession.Login = teacherWithActiveLesson.Login
-	teacherSession.Password = teacherWithActiveLesson.Password
-	teacherSession.GroupName = teacherWithActiveLesson.GroupName
-	teacherSession.DisciplineId = teacherWithActiveLesson.DisciplineId
-	teacherSession.Semester = teacherWithActiveLesson.Semester
-
-	teacherSession.LessonId = teacherWithActiveLesson.LessonId
-	teacherSession.LessonDate = teacherWithActiveLesson.LessonDate
+	teacherSession = NewTeacherSession(teacherWithActiveLesson)
 
 	test := testing.InternalTest{
 		Name: "integration testing",
 		F: func(t *testing.T) {
+			reverseProxyTestPass := true || t.Run("TestReverseProxy", TestReverseProxy)
+			if !reverseProxyTestPass {
+				t.Fatal("TestReverseProxy failed")
+				return
+			}
+
+			realtimeQueue = CreateRealtimeQueue(t)
+
 			err = chromedp.Run(chromeCtx)
 			assert.NoError(t, err)
 
-			//	teacherSession.GroupPageUrl = `http://dekanat.kneu.edu.ua/cgi-bin/teachers.cgi?sesID=1A6F268B-BCAE-4111-AEA6-1A7337736B26&n=1&grp=%B2%C0-401&teacher=6653`
-			reachGroupPage(t, teacherSession)
+			teacherSession.GroupPageUrl = `http://mbp-anton:8090/cgi-bin/teachers.cgi?sesID=23BBEBB0-F3E6-4822-AEC7-026FF57DC112&n=1&grp=%D0%CC-306&teacher=321`
+			if teacherSession.GroupPageUrl == "" {
+				LoginAndFetchGroupPageUrl(t, teacherSession)
+			}
 
 			fmt.Println("Start testing..")
 			setupTests(t)
 			fmt.Println("Test done")
 
 			fmt.Print("Press enter to exit")
-			_, _ = bufio.NewReader(os.Stdin).ReadBytes('\n')
+
+			if !t.Failed() {
+				_, _ = bufio.NewReader(os.Stdin).ReadBytes('\n')
+			}
 		},
 	}
 

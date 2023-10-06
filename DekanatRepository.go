@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/nakagami/firebirdsql"
+	"strings"
 	"time"
 )
 
@@ -19,8 +20,8 @@ type TeacherWithActiveLesson struct {
 	GrpId          uint
 	GroupName      string
 	DisciplineName string
-	Semester       uint8
-	IdTeach        uint
+	Semester       uint
+	TeacherId      uint
 	Ln             string
 	Fn             string
 	Pn             string
@@ -94,7 +95,7 @@ func (r *DekanatRepository) GetTeacherWithActiveLesson() *TeacherWithActiveLesso
 		&record.GroupName,
 		&record.DisciplineName,
 		&record.Semester,
-		&record.IdTeach,
+		&record.TeacherId,
 		&record.Ln,
 		&record.Fn,
 		&record.Pn,
@@ -106,6 +107,12 @@ func (r *DekanatRepository) GetTeacherWithActiveLesson() *TeacherWithActiveLesso
 		fmt.Println("failed to scan teacher with active lesson", err)
 		return nil
 	}
+
+	record.GroupName = strings.Trim(record.GroupName, " ")
+	record.DisciplineName = strings.Trim(record.DisciplineName, " ")
+	record.Ln = strings.Trim(record.Ln, " ")
+	record.Fn = strings.Trim(record.Fn, " ")
+	record.Pn = strings.Trim(record.Pn, " ")
 
 	return record
 }
