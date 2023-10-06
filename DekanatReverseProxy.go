@@ -86,7 +86,7 @@ func (reverseProxy *DekanatReverseProxy) proxyAction(c *gin.Context) {
 		return
 	}
 
-	if c.Request.URL.Query().Get("action") == "delete" {
+	if c.Request.URL.Query().Get("n") == "11" || c.Request.URL.Query().Get("action") == "delete" {
 		fmt.Println("[proxy] Blocked delete request by url param", c.Request.RequestURI)
 		reverseProxy.blockAction(c, "delete action in url param")
 		return

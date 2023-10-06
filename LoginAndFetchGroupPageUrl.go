@@ -6,7 +6,9 @@ import (
 	"testing"
 )
 
-func LoginAndFetchGroupPageUrl(t *testing.T, teacherSession *TeacherSession) {
+type LogoutFunc func()
+
+func LoginAndFetchGroupPageUrl(t *testing.T, teacherSession *TeacherSession) (logoutFunc LogoutFunc) {
 	var err error
 
 	err = doLogin(t, teacherSession.Login, teacherSession.Password)
@@ -14,8 +16,14 @@ func LoginAndFetchGroupPageUrl(t *testing.T, teacherSession *TeacherSession) {
 
 	assert.NoError(t, err)
 
-	teacherSession.LogoutUrl = getLogoutUrl()
-	assert.NotEmpty(t, teacherSession.LogoutUrl, "Logout url is empty")
+	logoutUrl := getLogoutUrl()
+	if !assert.NotEmpty(t, logoutUrl, "Logout url is empty") {
+		return
+	}
+
+	logoutFunc = func() {
+		doLogout(logoutUrl)
+	}
 
 	teacherSession.GroupPageUrl = chooseGroup(teacherSession.GroupName)
 	fmt.Printf("Group page url: %s\n", teacherSession.GroupPageUrl)
@@ -24,4 +32,6 @@ func LoginAndFetchGroupPageUrl(t *testing.T, teacherSession *TeacherSession) {
 	}
 
 	makeScreenshot("group_page")
+
+	return
 }

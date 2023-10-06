@@ -17,8 +17,6 @@ type TeacherSession struct {
 
 	LessonId   uint
 	LessonDate time.Time
-
-	LogoutUrl string
 }
 
 func NewTeacherSession(teacherWithActiveLesson *TeacherWithActiveLesson) *TeacherSession {

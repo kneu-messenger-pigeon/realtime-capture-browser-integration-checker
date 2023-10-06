@@ -77,7 +77,7 @@ func (r *DekanatRepository) GetTeacherWithActiveLesson() *TeacherWithActiveLesso
 		  AND T_PRJURN.REGDATE > DATEADD(-7 day to CAST((select 'Now' from rdb$database) as date))
 		  AND (SELECT FIRST 1 1 FROM T_EV_6 WHERE T_PD_CMS.ID = T_EV_6.XI_2) IS NULL -- семестрові (екземенаційні) бали відсутні
 		  AND (SELECT FIRST 1 1 FROM T_CG_LINK WHERE T_CG_LINK.ID_PREDM = T_PD_CMS.ID) IS NULL -- не віртуальна група (не вибіркова дисципліна)
-		ORDER BY T_PRJURN.ID DESC
+		ORDER BY T_PRJURN.DATEZAN DESC, T_PRJURN.ID DESC
 `, r.secret, r.secret)
 
 	if row.Err() != nil {
