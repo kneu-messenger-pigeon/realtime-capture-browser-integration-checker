@@ -75,7 +75,6 @@ func main() {
 			err = chromedp.Run(chromeCtx)
 			assert.NoError(t, err)
 
-			// teacherSession.GroupPageUrl = `http://macbook-pro-anton.local:8090/cgi-bin/teachers.cgi?sesID=A54590D7-24B2-4B75-9607-A2A0E0DA19F5&n=1&grp=%D0%CC-210&teacher=328`
 			if teacherSession.GroupPageUrl == "" {
 				logoutFunc := LoginAndFetchGroupPageUrl(t, teacherSession)
 				defer logoutFunc()

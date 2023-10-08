@@ -128,7 +128,7 @@ func openLessonPopup(lessonDate time.Time) (err error) {
 	return err
 }
 
-func verifyLessonForm(t *testing.T, expectedGroupName string, expectedDisciplineName string) {
+func verifyLessonOrScoreForm(t *testing.T, expectedGroupName string, expectedDisciplineName string) {
 	var currentGroup string
 	var currentDiscipline string
 

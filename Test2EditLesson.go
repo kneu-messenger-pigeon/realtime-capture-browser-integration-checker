@@ -35,7 +35,7 @@ func Test2EditLesson(t *testing.T) {
 		chromedp.WaitVisible(`//body`),
 	})
 
-	verifyLessonForm(t, teacherSession.GroupName, teacherSession.DisciplineName)
+	verifyLessonOrScoreForm(t, teacherSession.GroupName, teacherSession.DisciplineName)
 	makeScreenshot("edit_lesson_form")
 
 	if t.Failed() {
