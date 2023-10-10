@@ -18,7 +18,7 @@ jobs:
       COMPOSE_URL: https://${{ github.token }}@raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/docker-compose.yml
     steps:
       - name: Add infisical repository
-        run: curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | bash
+        run: curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | sudo -E bash
       - uses: awalsh128/cache-apt-pkgs-action@v1.3.0
         with:
           packages: openvpn openvpn-systemd-resolved infisical
@@ -31,9 +31,15 @@ jobs:
           config_file: .openvpn-client.ovpn
           client_key: ${{ secrets.OVPN_CLIENT_KEY }}
       ## Finish  section with VPN connections
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ github.token }}
       - name: Execute integration check
         env:
-          INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN_INTEGRATION_TEST }}
+          INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
         run: |
           export INFISICAL_DISABLE_UPDATE_CHECK=true
           curl --fail -s "$COMPOSE_URL" > docker-compose.yml
