@@ -64,7 +64,7 @@ func main() {
 	test := testing.InternalTest{
 		Name: "integration testing",
 		F: func(t *testing.T) {
-			reverseProxyTestPass := true || t.Run("TestReverseProxy", TestReverseProxy)
+			reverseProxyTestPass := t.Run("TestReverseProxy", TestReverseProxy)
 			if !reverseProxyTestPass {
 				t.Fatal("TestReverseProxy failed")
 				return
@@ -72,7 +72,7 @@ func main() {
 
 			realtimeQueue = CreateRealtimeQueue(t)
 
-			err = chromedp.Run(chromeCtx)
+			err = chromedp.Run(chromeCtx, chromedp.EmulateViewport(1920, 1080))
 			assert.NoError(t, err)
 
 			if teacherSession.GroupPageUrl == "" {

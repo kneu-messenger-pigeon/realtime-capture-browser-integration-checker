@@ -1,0 +1,72 @@
+version: "3.9"
+
+networks:
+  internet:
+    driver: bridge
+  no-internet:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16
+
+services:
+  integration-checker:
+    image: ghcr.io/kneu-messenger-pigeon/realtime-capture-browser-integration-checker:main
+    networks:
+      - internet
+      - no-internet
+    environment:
+    #  - DEVTOOLS_WS_URL=ws://chrome-headless:3000/devtools/browser
+      - DEVTOOLS_WS_URL=ws://chrome-headless:9222/devtools/browser
+      - DEKANAT_WEB_HOST=${DEKANAT_WEB_HOST}
+      - DEKANAT_DB_DSN=${DEKANAT_DB_DSN}
+      - DEKANAT_SECRET=${DEKANAT_SECRET}
+      - AWS_SQS_QUEUE_URL=${AWS_SQS_QUEUE_URL}
+      - AWS_REGION=${AWS_REGION}
+      - CONSUMER_AWS_SECRET_ACCESS_KEY=${CONSUMER_AWS_SECRET_ACCESS_KEY}
+      - CONSUMER_AWS_ACCESS_KEY_ID=${CONSUMER_AWS_ACCESS_KEY_ID}
+      - SCRIPT_PUBLIC_URL=${SCRIPT_PUBLIC_URL}
+      - SCRIPT_PROD_PUBLIC_URL=${SCRIPT_PROD_PUBLIC_URL}
+    depends_on:
+      chrome-headless:
+        condition: service_healthy
+    working_dir: /workdir
+    volumes:
+      - ./workdir:/workdir
+
+  chrome-headless:
+    image: browserless/chrome
+  #  image: chromedp/headless-shell
+    networks:
+      - no-internet
+    dns:
+      - 10.5.0.5
+    healthcheck:
+      interval: 3s
+      test: ["CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/localhost/3000"]
+    #  test: ["CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/localhost/9222"]
+      timeout: 1s
+      retries: 3
+
+  realtime-proxy:
+    image: alpine/socat
+    restart: always
+    command: tcp-listen:443,fork,reuseaddr tcp-connect:${STATIC_HOSTNAME}:443
+    networks:
+      internet:
+        aliases:
+          - proxy
+      no-internet:
+        ipv4_address: 10.5.0.10
+
+  dns:
+    image: strm/dnsmasq
+    networks:
+      no-internet:
+        ipv4_address: 10.5.0.5
+    environment:
+      DNSMASQ_CONF: |
+        address=/${STATIC_HOSTNAME}/10.5.0.10
+    entrypoint: ["sh", "-c"]
+    command: ['echo "$${DNSMASQ_CONF}" > /etc/dnsmasq.conf && dnsmasq --no-daemon']

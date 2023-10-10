@@ -3,3 +3,4 @@ screenshots/*
 
 .env
 chrome.log
+workdir

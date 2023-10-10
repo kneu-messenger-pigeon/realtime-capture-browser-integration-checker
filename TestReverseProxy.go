@@ -2,12 +2,16 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
 )
 
 func TestReverseProxy(t *testing.T) {
+	fmt.Println("TestReverseProxy")
+	defer printTestResult(t, "TestReverseProxy")
+
 	doPOST := func(url string, formPost string) int {
 		res, _ := http.Post(
 			dekanatReverseProxy.ProxyOrigin+url, "application/x-www-form-urlencoded",
