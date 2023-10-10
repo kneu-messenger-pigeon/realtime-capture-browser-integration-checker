@@ -84,9 +84,8 @@ func main() {
 			setupTests(t)
 			fmt.Println("Test done")
 
-			fmt.Print("Press enter to exit")
-
 			if !t.Failed() && config.chromeWsUrl == "DESKTOP" {
+				fmt.Print("Press enter to exit")
 				_, _ = bufio.NewReader(os.Stdin).ReadBytes('\n')
 			}
 		},

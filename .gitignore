@@ -1,6 +1,7 @@
 screenshots/*
 !screenshots/.gitkeep
-
+.infisical.json
 .env
 chrome.log
 workdir
+Dockerfile

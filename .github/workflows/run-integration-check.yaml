@@ -1,0 +1,41 @@
+name: Run integration check
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types:
+      - realtime-changes-event-sender-deployed
+
+concurrency:
+  group: run-integration-check
+  cancel-in-progress: false
+
+jobs:
+  integration-check:
+    name: Integration check
+    runs-on: ubuntu-latest
+    env:
+      COMPOSE_URL: https://${{ github.token }}@raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}/docker-compose.yml
+    steps:
+      - name: Add infisical repository
+        run: curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | bash
+      - uses: awalsh128/cache-apt-pkgs-action@v1.3.0
+        with:
+          packages: openvpn openvpn-systemd-resolved infisical
+          version: 1.0
+      - name: Write OVPN config
+        run: printf "${{ vars.OVPN_CONFIG }}" > .openvpn-client.ovpn
+      - name: Connect to VPN
+        uses: kota65535/github-openvpn-connect-action@v2
+        with:
+          config_file: .openvpn-client.ovpn
+          client_key: ${{ secrets.OVPN_CLIENT_KEY }}
+      ## Finish  section with VPN connections
+      - name: Execute integration check
+        env:
+          INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN_INTEGRATION_TEST }}
+        run: |
+          export INFISICAL_DISABLE_UPDATE_CHECK=true
+          curl --fail -s "$COMPOSE_URL" > docker-compose.yml
+          infisical run --env=integration-testing --path=/realtime-changes-event-sender -- \
+          docker compose up --pull --exit-code-from integration-checker --attach integration-checker --abort-on-container-exit --timeout 500

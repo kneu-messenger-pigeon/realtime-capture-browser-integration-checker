@@ -68,7 +68,6 @@ func chooseDiscipline(disciplineId uint, semester uint) (err error) {
 	}
 
 	form := findVisibleForm(`.jumbotron form[method="post"]`)
-	fromForm := chromedp.FromNode(form)
 	formXPath := form.FullXPathByID()
 
 	ctx, cancel := context.WithTimeout(chromeCtx, time.Second*3)
@@ -101,7 +100,7 @@ func chooseDiscipline(disciplineId uint, semester uint) (err error) {
 	ctx, cancel = context.WithTimeout(chromeCtx, time.Second*25)
 	defer cancel()
 	err = chromedp.Run(ctx, chromedp.Tasks{
-		chromedp.Submit(`[name="grade"]`, fromForm),
+		chromedp.Submit(formXPath + `//*[@name="grade"]`),
 		chromedp.WaitReady(`//body`),
 	})
 

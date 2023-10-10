@@ -17,8 +17,8 @@ services:
       - internet
       - no-internet
     environment:
-    #  - DEVTOOLS_WS_URL=ws://chrome-headless:3000/devtools/browser
       - DEVTOOLS_WS_URL=ws://chrome-headless:9222/devtools/browser
+    # - DEVTOOLS_WS_URL=ws://chrome-headless:3000/devtools/browser
       - DEKANAT_WEB_HOST=${DEKANAT_WEB_HOST}
       - DEKANAT_DB_DSN=${DEKANAT_DB_DSN}
       - DEKANAT_SECRET=${DEKANAT_SECRET}
@@ -36,16 +36,16 @@ services:
       - ./workdir:/workdir
 
   chrome-headless:
-    image: browserless/chrome
-  #  image: chromedp/headless-shell
+    image: chromedp/headless-shell
+   # image: browserless/chrome
     networks:
       - no-internet
     dns:
       - 10.5.0.5
     healthcheck:
       interval: 3s
-      test: ["CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/localhost/3000"]
-    #  test: ["CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/localhost/9222"]
+      test: ["CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/localhost/9222"]
+    #  test: ["CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/localhost/3000"]
       timeout: 1s
       retries: 3
 
