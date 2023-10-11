@@ -41,6 +41,8 @@ func Test1CreateLesson(t *testing.T) {
 	verifyLessonOrScoreForm(t, teacherSession.GroupName, teacherSession.DisciplineName)
 	makeScreenshot("create_lesson_form")
 
+	captureScriptUrlReplacer.AssertReplaced(t)
+
 	if t.Failed() {
 		return
 	}

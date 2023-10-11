@@ -14,8 +14,8 @@ type Config struct {
 	sqsQueueUrl    string
 	dekenatWebHost string
 
-	scriptProdPublicUrl []byte
-	scriptPublicUrl     []byte
+	scriptProdPublicUrl string
+	scriptPublicUrl     string
 }
 
 func loadConfig(envFilename string) (Config, error) {
@@ -32,8 +32,8 @@ func loadConfig(envFilename string) (Config, error) {
 		sqsQueueUrl:    os.Getenv("AWS_SQS_QUEUE_URL"),
 		dekenatWebHost: os.Getenv("DEKANAT_WEB_HOST"),
 
-		scriptProdPublicUrl: []byte(os.Getenv("SCRIPT_PROD_PUBLIC_URL")),
-		scriptPublicUrl:     []byte(os.Getenv("SCRIPT_PUBLIC_URL")),
+		scriptProdPublicUrl: os.Getenv("SCRIPT_PROD_PUBLIC_URL"),
+		scriptPublicUrl:     os.Getenv("SCRIPT_PUBLIC_URL"),
 	}
 
 	if loadedConfig.chromeWsUrl == "" {

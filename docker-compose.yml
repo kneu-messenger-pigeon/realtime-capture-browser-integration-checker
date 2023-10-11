@@ -17,8 +17,8 @@ services:
       - internet
       - no-internet
     environment:
-      - DEVTOOLS_WS_URL=ws://chrome-headless:9222/devtools/browser
-    # - DEVTOOLS_WS_URL=ws://chrome-headless:3000/devtools/browser
+      - DEVTOOLS_WS_URL=ws://chrome-headless:9222/devtools/browser # for chromedp/headless-shell
+    #  - DEVTOOLS_WS_URL=ws://chrome-headless:3000/devtools/browser # for browserless/chrome
       - DEKANAT_WEB_HOST=${DEKANAT_WEB_HOST}
       - DEKANAT_DB_DSN=${DEKANAT_DB_DSN}
       - DEKANAT_SECRET=${DEKANAT_SECRET}
@@ -43,10 +43,15 @@ services:
       - 10.5.0.5
     healthcheck:
       interval: 3s
-      test: ["CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/localhost/9222"]
-    #  test: ["CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/localhost/3000"]
+      test: ["CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/localhost/9222"] # for chromedp/headless-shell
+   #   test: ["CMD", "bash", "-c", "cat < /dev/null > /dev/tcp/localhost/3000"] # for browserless/chrome
       timeout: 1s
       retries: 3
+    depends_on:
+      realtime-proxy:
+        condition: service_started
+      dns:
+        condition: service_started
 
   realtime-proxy:
     image: alpine/socat

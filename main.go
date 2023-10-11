@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"fmt"
 	"github.com/chromedp/chromedp"
@@ -17,6 +16,8 @@ var config Config
 var stubMatch = func(pat, str string) (bool, error) { return true, nil }
 
 var chromeCtx context.Context
+
+var captureScriptUrlReplacer *CaptureScriptUrlReplacer
 
 var dekanatRepository *DekanatRepository
 
@@ -37,9 +38,9 @@ func main() {
 
 	config, err = loadConfig(envFilename)
 
-	dekanatReverseProxy = NewReverseProxy(config.dekenatWebHost, func(body []byte) []byte {
-		return bytes.ReplaceAll(body, config.scriptProdPublicUrl, config.scriptPublicUrl)
-	})
+	captureScriptUrlReplacer = NewCaptureScriptUrlReplacer(config.scriptProdPublicUrl, config.scriptPublicUrl)
+
+	dekanatReverseProxy = NewReverseProxy(config.dekenatWebHost, captureScriptUrlReplacer.Replace)
 
 	// create context
 	chromeCtx, cancel = createChromeContext(config.chromeWsUrl)

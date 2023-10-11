@@ -40,12 +40,15 @@ jobs:
       - name: Execute integration check
         env:
           INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
+          INFISICAL_DISABLE_UPDATE_CHECK: true
         run: |
-          export INFISICAL_DISABLE_UPDATE_CHECK=true
           curl --fail -s "$COMPOSE_URL" > docker-compose.yml
-          infisical run --env=integration-testing --path=/realtime-changes-event-sender -- \
-          docker compose up --pull --exit-code-from integration-checker --attach integration-checker --abort-on-container-exit --timeout 500
-          rm docker-compose.yml
+          docker compose pull integration-checker    
+          infisical run --env=integration-testing --path=/realtime-changes-event-sender -- docker compose run --rm integration-checker
+
+      - uses: Docker down
+        if: always()
+        run: docker compose down --volumes --timeout 30
 
       - uses: actions/upload-artifact@v3
         if: always()
