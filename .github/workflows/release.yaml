@@ -16,3 +16,8 @@ jobs:
     secrets: inherit
     with:
       test-coverage-threshold: 0
+
+  run-integration-check:
+    needs: release
+    uses: ./.github/workflows/run-integration-check.yaml
+    secrets: inherit

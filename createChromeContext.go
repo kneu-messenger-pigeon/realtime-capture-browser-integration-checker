@@ -7,6 +7,7 @@ import (
 	"github.com/chromedp/chromedp"
 	"log"
 	"os"
+	"regexp"
 )
 
 func createChromeContext(chromeWsUrl string) (context.Context, context.CancelFunc) {
@@ -24,8 +25,12 @@ func createChromeContext(chromeWsUrl string) (context.Context, context.CancelFun
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	var removeBase64Data = regexp.MustCompile(`"data":"/9j/.*?"`)
 	logPrint := func(format string, v ...any) {
-		_, _ = fmt.Fprintf(logFile, format+"\n", v...)
+		logRecord := fmt.Sprintf(format, v...)
+		logRecord = removeBase64Data.ReplaceAllString(logRecord, `"data":"<base64 data>"`)
+		_, _ = fmt.Fprintln(logFile, logRecord)
 	}
 
 	taskCtx, cancel := chromedp.NewContext(allocCtx, chromedp.WithLogf(logPrint), chromedp.WithDebugf(logPrint))

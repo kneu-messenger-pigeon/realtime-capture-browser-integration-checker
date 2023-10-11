@@ -58,6 +58,7 @@ func main() {
 		log.Fatal("Teacher with active lesson not found")
 	}
 
+	fmt.Printf("::add-mask::%s\n", teacherWithActiveLesson.Password)
 	fmt.Printf("Teacher with active lesson: %+v\n", teacherWithActiveLesson)
 
 	teacherSession = NewTeacherSession(teacherWithActiveLesson)

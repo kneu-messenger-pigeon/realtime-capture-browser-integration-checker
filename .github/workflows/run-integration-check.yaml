@@ -1,7 +1,15 @@
 name: Run integration check
 
 on:
+  schedule:
+    - cron: '40 0 * 2-6,9-12 MON'
   workflow_dispatch:
+  workflow_call:
+    secrets:
+      OVPN_CLIENT_KEY:
+        required: true
+      INFISICAL_TOKEN:
+        required: true
   repository_dispatch:
     types:
       - realtime-changes-event-sender-deployed
@@ -11,6 +19,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  Ping-Start:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -m 10 --retry 5 ${{ secrets.ping_url }}/start
+
   integration-check:
     name: Integration check
     runs-on: ubuntu-latest
@@ -55,3 +68,17 @@ jobs:
         with:
           name: Check results
           path: workdir/
+
+  Ping-Success:
+    runs-on: ubuntu-latest
+    needs:
+      - integration-check
+    steps:
+      - run: curl -m 10 --retry 5 ${{ secrets.ping_url }}
+  Ping-Failure:
+    runs-on: ubuntu-latest
+    if: failure()
+    needs:
+      - integration-check
+    steps:
+      - run: curl -m 10 --retry 5 ${{ secrets.ping_url }}/fail
