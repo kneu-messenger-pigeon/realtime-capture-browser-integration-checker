@@ -46,7 +46,7 @@ jobs:
           docker compose pull integration-checker    
           infisical run --env=integration-testing --path=/realtime-changes-event-sender -- docker compose run --rm integration-checker
 
-      - uses: Docker down
+      - name: Docker down
         if: always()
         run: docker compose down --volumes --timeout 30
 
