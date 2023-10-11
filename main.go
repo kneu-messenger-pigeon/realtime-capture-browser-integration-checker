@@ -74,7 +74,7 @@ func main() {
 
 			realtimeQueue = CreateRealtimeQueue(t)
 
-			err = chromedp.Run(chromeCtx, chromedp.EmulateViewport(1920, 1080))
+			err = chromedp.Run(chromeCtx, chromedp.EmulateViewport(1280, 1024))
 			assert.NoError(t, err)
 
 			if teacherSession.GroupPageUrl == "" {
