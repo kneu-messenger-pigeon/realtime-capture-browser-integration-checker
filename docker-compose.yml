@@ -12,7 +12,7 @@ networks:
 
 services:
   integration-checker:
-    image: ghcr.io/kneu-messenger-pigeon/realtime-capture-browser-integration-checker:main
+    image: ghcr.io/kneu-messenger-pigeon/realtime-capture-browser-integration-tests:main
     networks:
       - internet
       - no-internet

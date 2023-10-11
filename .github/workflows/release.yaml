@@ -19,5 +19,5 @@ jobs:
 
   run-integration-check:
     needs: release
-    uses: ./.github/workflows/run-integration-check.yaml
+    uses: ./.github/workflows/run-browser-integration-tests.yaml
     secrets: inherit

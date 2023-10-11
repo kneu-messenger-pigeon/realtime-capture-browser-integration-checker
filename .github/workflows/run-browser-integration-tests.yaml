@@ -1,4 +1,4 @@
-name: Run integration check
+name: Run browser integration test
 
 on:
   schedule:
@@ -12,7 +12,7 @@ on:
         required: true
   repository_dispatch:
     types:
-      - realtime-changes-event-sender-deployed
+      - realtime-capture-deployed
 
 concurrency:
   group: run-integration-check
