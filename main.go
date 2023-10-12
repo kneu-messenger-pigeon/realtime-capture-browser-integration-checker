@@ -66,13 +66,17 @@ func main() {
 	test := testing.InternalTest{
 		Name: "integration testing",
 		F: func(t *testing.T) {
+			realtimeQueue = CreateRealtimeQueue(t)
+			if realtimeQueue == nil {
+				t.Fatal("Failed to create realtime queue")
+				return
+			}
+
 			reverseProxyTestPass := t.Run("TestReverseProxy", TestReverseProxy)
 			if !reverseProxyTestPass {
 				t.Fatal("TestReverseProxy failed")
 				return
 			}
-
-			realtimeQueue = CreateRealtimeQueue(t)
 
 			err = chromedp.Run(chromeCtx, chromedp.EmulateViewport(1280, 1024))
 			assert.NoError(t, err)

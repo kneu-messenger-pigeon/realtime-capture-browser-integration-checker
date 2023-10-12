@@ -56,9 +56,7 @@ func Test2EditLesson(t *testing.T) {
 	expectBlockedPage(t)
 	assert.Equal(t, 1, len(dekanatReverseProxy.BlockedRequests), "Wrong number of blocked requests")
 
-	ctx, cancel = context.WithTimeout(context.Background(), time.Second*5)
-	event := realtimeQueue.Fetch(ctx)
-	cancel()
+	event := realtimeQueue.Fetch(time.Second * 15)
 
 	assert.NotNil(t, event, "Event not found")
 	assert.IsType(t, dekanatEvents.LessonEditEvent{}, event, "Wrong event type")

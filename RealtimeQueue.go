@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	dekanatEvents "github.com/kneu-messenger-pigeon/dekanat-events"
@@ -44,54 +45,68 @@ func CreateRealtimeQueue(t *testing.T) *RealtimeQueue {
 		t:           t,
 	}
 
-	go (func() {
-		var event interface{}
-		event = struct{}{}
-		for event != nil {
-			// fetch and delete all messages from queue
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-			event = queue.Fetch(ctx)
-			cancel()
+	// clear queue
+	gMInput := &sqs.ReceiveMessageInput{
+		QueueUrl:            queue.sqsQueueUrl,
+		MaxNumberOfMessages: 10,
+		WaitTimeSeconds:     10,
+	}
+	var msgResult *sqs.ReceiveMessageOutput
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+
+	for msgResult == nil || len(msgResult.Messages) != 0 {
+		msgResult, err = queue.client.ReceiveMessage(ctx, gMInput)
+
+		if !assert.NoError(t, err, "Failed to get message from SQS: %v \n", err) {
+			return nil
 		}
-	})()
+
+		for _, message := range msgResult.Messages {
+			queue.Delete(message.ReceiptHandle)
+		}
+
+		fmt.Printf("Clear queue - deleted %d messages\n", len(msgResult.Messages))
+	}
 
 	return queue
 }
 
-func (queue *RealtimeQueue) Fetch(context context.Context) (event interface{}) {
+func (queue *RealtimeQueue) Fetch(waitTime time.Duration) (event interface{}) {
 	gMInput := &sqs.ReceiveMessageInput{
 		QueueUrl:            queue.sqsQueueUrl,
 		MaxNumberOfMessages: 1,
-		WaitTimeSeconds:     20,
+		WaitTimeSeconds:     int32(waitTime.Seconds()),
 	}
 	var err error
 	var msgResult *sqs.ReceiveMessageOutput
 	var message *dekanatEvents.Message
 
-	for context.Err() == nil {
-		msgResult, err = queue.client.ReceiveMessage(context, gMInput)
-		if err != nil && context.Err() == nil {
-			queue.t.Errorf("Failed to get message from SQS: %v \n", err)
-			break
-		}
-
-		if msgResult == nil || len(msgResult.Messages) == 0 {
-			continue
-		}
-
-		message, err = dekanatEvents.CreateMessage(msgResult.Messages[0].Body, msgResult.Messages[0].ReceiptHandle)
-		if err == nil {
-			event, err = message.ToEvent()
-		}
-
-		queue.Delete(message.ReceiptHandle)
-
-		if err == nil && event != nil {
-			return event
-		}
-
-		queue.t.Errorf("Failed to decode Event message: %v \n%+v\n", err, message)
+	ctx, cancel := context.WithTimeout(context.Background(), waitTime+time.Second*2)
+	msgResult, err = queue.client.ReceiveMessage(ctx, gMInput)
+	cancel()
+	if err != nil {
+		queue.t.Errorf("Failed to get message from SQS: %v \n", err)
+		return nil
 	}
+
+	if msgResult == nil || len(msgResult.Messages) == 0 {
+		return nil
+	}
+
+	message, err = dekanatEvents.CreateMessage(msgResult.Messages[0].Body, msgResult.Messages[0].ReceiptHandle)
+	if err == nil {
+		event, err = message.ToEvent()
+	}
+
+	queue.Delete(message.ReceiptHandle)
+
+	if err == nil && event != nil {
+		return event
+	}
+
+	queue.t.Errorf("Failed to decode Event message: %v \n%+v\n", err, message)
 
 	return nil
 }
