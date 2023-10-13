@@ -82,6 +82,8 @@ github.com/klauspost/cpuid/v2 v2.2.4 h1:acbojRNwl3o09bUq+yDCtZFc1aiwaAAxtcn8YkZX
 github.com/klauspost/cpuid/v2 v2.2.4/go.mod h1:RVVoqg1df56z8g3pUjL/3lE5UfnlrJX8tyFgg4nqhuY=
 github.com/kneu-messenger-pigeon/dekanat-events v0.1.7 h1:GP6Gk06LPrr7kEfRcYLM1ooFfQzoIhl+BWB6W8ED6KI=
 github.com/kneu-messenger-pigeon/dekanat-events v0.1.7/go.mod h1:KC0hflA3057dtpg2Mtpbhma9Z3n8Y43vwyygZODzO/Y=
+github.com/kneu-messenger-pigeon/dekanat-events v0.1.8 h1:45xxf+vvun5Hlp5sMUICorSFB86ePq92jkTrxUmv8zE=
+github.com/kneu-messenger-pigeon/dekanat-events v0.1.8/go.mod h1:KC0hflA3057dtpg2Mtpbhma9Z3n8Y43vwyygZODzO/Y=
 github.com/ledongthuc/pdf v0.0.0-20220302134840-0c2507a12d80 h1:6Yzfa6GP0rIo/kULo2bwGEkFvCePZ3qHDDTC3/J9Swo=
 github.com/ledongthuc/pdf v0.0.0-20220302134840-0c2507a12d80/go.mod h1:imJHygn/1yfhB7XSJJKlFZKl/J+dCPAknuiaGOshXAs=
 github.com/leodido/go-urn v1.2.4 h1:XlAE/cm/ms7TE/VMVoduSpNBoyc2dOxHs5MZSwAN63Q=

@@ -14,7 +14,7 @@ func TestTest3EditScore(t *testing.T) {
 	fmt.Println("TestTest3EditScore")
 	defer printTestResult(t, "TestTest3EditScore")
 
-	err := chooseDiscipline(teacherSession.DisciplineId, teacherSession.Semester)
+	err := chooseDiscipline()
 	if !assert.NoError(t, err, "Failed to choose discipline") {
 		return
 	}
@@ -36,7 +36,13 @@ func TestTest3EditScore(t *testing.T) {
 	})
 
 	makeScreenshot("edit_score_form")
-	verifyLessonOrScoreForm(t, teacherSession.GroupName, teacherSession.DisciplineName)
+	verifyLessonOrScoreForm(t)
+
+	scoreInputSelector := `(//input[starts-with(@name, 'st')])[2]`
+
+	inputTypeCtx, inputTypeCancel := context.WithTimeout(ctx, time.Millisecond*500)
+	err = chromedp.Run(inputTypeCtx, chromedp.SetValue(scoreInputSelector, "5.5"))
+	inputTypeCancel()
 
 	if t.Failed() {
 		return
@@ -66,10 +72,16 @@ func TestTest3EditScore(t *testing.T) {
 		return
 	}
 
+	assert.Equal(t, teacherSession.IsCustomGroup, scoreEditEvent.IsCustomGroup())
+	assert.True(t, scoreEditEvent.HasChanges)
+
 	assert.Equal(t, teacherSession.DisciplineId, scoreEditEvent.GetDisciplineId(), "Wrong group id")
 	assert.Equal(t, teacherSession.Semester, scoreEditEvent.GetSemester(), "Wrong semester")
 	assert.Equal(t, teacherSession.LessonId, scoreEditEvent.GetLessonId(), "Wrong semester")
 
 	expectedLessonDate := teacherSession.LessonDate.Format("02.01.2006")
 	assert.Equal(t, expectedLessonDate, scoreEditEvent.Date, "Wrong date")
+
+	realtimeQueue.AssertNoOtherEvents(t)
+
 }

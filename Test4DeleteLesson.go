@@ -15,7 +15,7 @@ func Test4DeleteLesson(t *testing.T) {
 	fmt.Println("Test4DeleteLesson")
 	defer printTestResult(t, "Test4DeleteLesson")
 
-	err := chooseDiscipline(teacherSession.DisciplineId, teacherSession.Semester)
+	err := chooseDiscipline()
 	if !assert.NoError(t, err, "Failed to choose discipline") {
 		return
 	}
@@ -65,8 +65,16 @@ func Test4DeleteLesson(t *testing.T) {
 		return
 	}
 
+	assert.True(t, lessonDeletedEvent.HasChanges)
+	assert.Equal(t, teacherSession.IsCustomGroup, lessonDeletedEvent.IsCustomGroup())
+
 	assert.Equal(t, teacherSession.DisciplineId, lessonDeletedEvent.GetDisciplineId(), "Wrong group id")
-	assert.Equal(t, teacherSession.Semester, lessonDeletedEvent.GetSemester(), "Wrong semester")
-	assert.Equal(t, teacherSession.LessonId, lessonDeletedEvent.GetLessonId(), "Wrong semester")
+
+	if teacherSession.IsCustomGroup == false {
+		assert.Equal(t, teacherSession.Semester, lessonDeletedEvent.GetSemester(), "Wrong semester")
+	}
+	assert.Equal(t, teacherSession.LessonId, lessonDeletedEvent.GetLessonId(), "Wrong lesson")
+
+	realtimeQueue.AssertNoOtherEvents(t)
 
 }

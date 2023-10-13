@@ -9,6 +9,11 @@ import (
 )
 
 func TestReverseProxy(t *testing.T) {
+	if config.skipReverseProxyTest {
+		t.Skip("Skipping reverse proxy test")
+		return
+	}
+
 	fmt.Println("TestReverseProxy")
 	defer printTestResult(t, "TestReverseProxy")
 

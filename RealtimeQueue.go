@@ -120,3 +120,8 @@ func (queue *RealtimeQueue) Delete(receiptHandle *string) {
 	_, err := queue.client.DeleteMessage(context.Background(), dMInput)
 	assert.NoError(queue.t, err, "Failed to remove message %s: %v \n", *receiptHandle, err)
 }
+
+func (queue *RealtimeQueue) AssertNoOtherEvents(t *testing.T) {
+	event := queue.Fetch(time.Second * 2)
+	assert.Nil(t, event, "Unexpected event found")
+}

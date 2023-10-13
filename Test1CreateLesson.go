@@ -14,7 +14,7 @@ func Test1CreateLesson(t *testing.T) {
 	fmt.Println("Test1CreateLesson")
 	defer printTestResult(t, "Test1CreateLesson")
 
-	err := chooseDiscipline(teacherSession.DisciplineId, teacherSession.Semester)
+	err := chooseDiscipline()
 	if !assert.NoError(t, err, "Failed to choose discipline") {
 		return
 	}
@@ -38,7 +38,7 @@ func Test1CreateLesson(t *testing.T) {
 	ctx, cancel = context.WithTimeout(ctx, time.Second*2)
 	defer cancel()
 
-	verifyLessonOrScoreForm(t, teacherSession.GroupName, teacherSession.DisciplineName)
+	verifyLessonOrScoreForm(t)
 	makeScreenshot("create_lesson_form")
 
 	captureScriptUrlReplacer.AssertReplaced(t)
@@ -74,10 +74,15 @@ func Test1CreateLesson(t *testing.T) {
 		return
 	}
 
+	assert.False(t, lessonCreateEvent.HasChanges)
+	assert.Equal(t, teacherSession.IsCustomGroup, lessonCreateEvent.IsCustomGroup())
+
 	assert.Equal(t, teacherSession.DisciplineId, lessonCreateEvent.GetDisciplineId(), "Wrong group id")
 	assert.Equal(t, teacherSession.Semester, lessonCreateEvent.GetSemester(), "Wrong semester")
 
 	dateNow := time.Now().Format("02.01.2006")
 	assert.Equal(t, dateNow, lessonCreateEvent.Date, "Wrong date")
+
+	realtimeQueue.AssertNoOtherEvents(t)
 
 }

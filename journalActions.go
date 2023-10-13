@@ -12,14 +12,25 @@ import (
 	"time"
 )
 
-func chooseGroup(groupName string) (groupPageUrl string) {
+func chooseGroup(groupName string, isCustomGroup bool) (groupPageUrl string) {
 	ctx, cancel := context.WithTimeout(chromeCtx, time.Second*60)
 	defer cancel()
 
 	groupName = strings.ReplaceAll(groupName, `""`, `\"`)
 
+	var groupListLabelText string
+	if isCustomGroup {
+		groupListLabelText = "Збірні групи"
+	} else {
+		groupListLabelText = "Академічні групи"
+	}
+	groupListSelector := fmt.Sprintf(
+		`//div[contains(@class, "jumbotron")]//a[contains(text(), "%s")]`,
+		groupListLabelText,
+	)
+
 	err := chromedp.Run(ctx, chromedp.Tasks{
-		chromedp.Click(`//div[contains(@class, "jumbotron")]//a[contains(., "Академічні групи")]`),
+		chromedp.Click(groupListSelector),
 		chromedp.WaitVisible(`//h2`),
 	})
 
@@ -45,19 +56,26 @@ func chooseGroup(groupName string) (groupPageUrl string) {
 	return
 }
 
-func chooseDiscipline(disciplineId uint, semester uint) (err error) {
-	var currentLocation string
+func chooseDisciplineInCustomGroup() (err error) {
+	formXPath := findVisibleForm(`.jumbotron form[method="post"]`).FullXPathByID()
 
-	_ = chromedp.Run(chromeCtx, chromedp.Location(&currentLocation))
+	ctx, cancel := context.WithTimeout(chromeCtx, time.Second*25)
+	defer cancel()
+	err = chromedp.Run(ctx, chromedp.Tasks{
+		chromedp.SetAttributeValue(
+			formXPath+`//option[text() = "За весь період"]`,
+			"selected", "selected",
+		),
+		chromedp.Submit(formXPath + `//*[@name="grade"]`),
+		chromedp.WaitReady(`//body`),
+	})
 
-	if currentLocation != teacherSession.GroupPageUrl {
-		err = chromedp.Run(chromeCtx, chromedp.Navigate(teacherSession.GroupPageUrl))
-		makeScreenshot("return_to_group_page")
-		if err != nil {
-			return err
-		}
-	}
+	makeScreenshot("discipline_page")
 
+	return err
+}
+
+func chooseDisciplineInRegularGroup(disciplineId uint, semester uint) (err error) {
 	var currentDisciplineId string
 
 	var semesterLabel string
@@ -127,7 +145,7 @@ func openLessonPopup(lessonDate time.Time) (err error) {
 	return err
 }
 
-func verifyLessonOrScoreForm(t *testing.T, expectedGroupName string, expectedDisciplineName string) {
+func verifyLessonOrScoreFormRegularGroup(t *testing.T, expectedGroupName string, expectedDisciplineName string) {
 	var currentGroup string
 	var currentDiscipline string
 
@@ -143,8 +161,23 @@ func verifyLessonOrScoreForm(t *testing.T, expectedGroupName string, expectedDis
 		return
 	}
 
-	assert.Contains(t, currentGroup, teacherSession.GroupName, "Wrong group name")
-	assert.Contains(t, currentDiscipline, teacherSession.DisciplineName, "Wrong discipline name")
+	assert.Contains(t, currentGroup, expectedGroupName, "Wrong group name")
+	assert.Contains(t, currentDiscipline, expectedDisciplineName, "Wrong discipline name")
+}
+
+func verifyLessonOrScoreFormCustomGroup(t *testing.T, expectedGroupName string) {
+	var currentGroup string
+
+	ctx, cancel := context.WithTimeout(chromeCtx, time.Millisecond*300)
+	defer cancel()
+
+	err := chromedp.Run(ctx, chromedp.Text(`//*[contains(text(), "Збірна група")]`, &currentGroup))
+
+	if !assert.NoError(t, err, "Failed to get current group and discipline") {
+		return
+	}
+
+	assert.Contains(t, currentGroup, expectedGroupName, "Wrong group name")
 }
 
 func findVisibleForm(selector string) *cdp.Node {

@@ -14,7 +14,7 @@ func Test2EditLesson(t *testing.T) {
 	fmt.Println("Test2EditLesson")
 	defer printTestResult(t, "Test2EditLesson")
 
-	err := chooseDiscipline(teacherSession.DisciplineId, teacherSession.Semester)
+	err := chooseDiscipline()
 	if !assert.NoError(t, err, "Failed to choose discipline") {
 		return
 	}
@@ -35,8 +35,14 @@ func Test2EditLesson(t *testing.T) {
 		chromedp.WaitVisible(`//body`),
 	})
 
-	verifyLessonOrScoreForm(t, teacherSession.GroupName, teacherSession.DisciplineName)
+	verifyLessonOrScoreForm(t)
 	makeScreenshot("edit_lesson_form")
+
+	radioClickCtx, radioClickCancel := context.WithTimeout(ctx, time.Millisecond*500)
+	err = chromedp.Run(radioClickCtx, chromedp.Click(`(//*[@name ="tzn" and not(@checked)])[1]`))
+	radioClickCancel()
+
+	assert.NoError(t, err, "Failed to click on `Вид заняття` radio button")
 
 	if t.Failed() {
 		return
@@ -66,10 +72,16 @@ func Test2EditLesson(t *testing.T) {
 		return
 	}
 
+	assert.True(t, lessonEditEvent.HasChanges)
+	assert.Equal(t, teacherSession.IsCustomGroup, lessonEditEvent.IsCustomGroup())
+
 	assert.Equal(t, teacherSession.DisciplineId, lessonEditEvent.GetDisciplineId(), "Wrong group id")
 	assert.Equal(t, teacherSession.Semester, lessonEditEvent.GetSemester(), "Wrong semester")
 	assert.Equal(t, teacherSession.LessonId, lessonEditEvent.GetLessonId(), "Wrong semester")
 
 	expectedLessonDate := teacherSession.LessonDate.Format("02.01.2006")
 	assert.Equal(t, expectedLessonDate, lessonEditEvent.Date, "Wrong date")
+
+	realtimeQueue.AssertNoOtherEvents(t)
+
 }

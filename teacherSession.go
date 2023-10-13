@@ -8,8 +8,9 @@ type TeacherSession struct {
 
 	TeacherId uint
 
-	GroupName    string
-	GroupPageUrl string
+	IsCustomGroup bool
+	GroupName     string
+	GroupPageUrl  string
 
 	DisciplineId   uint
 	DisciplineName string
@@ -20,17 +21,8 @@ type TeacherSession struct {
 }
 
 func NewTeacherSession(teacherWithActiveLesson *TeacherWithActiveLesson) *TeacherSession {
-	teacherSession.Login = teacherWithActiveLesson.Login
-	teacherSession.Password = teacherWithActiveLesson.Password
-	teacherSession.GroupName = teacherWithActiveLesson.GroupName
-	teacherSession.DisciplineId = teacherWithActiveLesson.DisciplineId
-	teacherSession.DisciplineName = teacherWithActiveLesson.DisciplineName
-	teacherSession.Semester = teacherWithActiveLesson.Semester
-
-	teacherSession.LessonId = teacherWithActiveLesson.LessonId
-	teacherSession.LessonDate = teacherWithActiveLesson.LessonDate
-
 	return &TeacherSession{
+		IsCustomGroup:  teacherWithActiveLesson.IsCustomGroup,
 		Login:          teacherWithActiveLesson.Login,
 		Password:       teacherWithActiveLesson.Password,
 		TeacherId:      teacherWithActiveLesson.TeacherId,

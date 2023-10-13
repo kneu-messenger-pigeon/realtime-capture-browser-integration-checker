@@ -16,6 +16,8 @@ type Config struct {
 
 	scriptProdPublicUrl string
 	scriptPublicUrl     string
+
+	skipReverseProxyTest bool
 }
 
 func loadConfig(envFilename string) (Config, error) {
@@ -34,6 +36,8 @@ func loadConfig(envFilename string) (Config, error) {
 
 		scriptProdPublicUrl: os.Getenv("SCRIPT_PROD_PUBLIC_URL"),
 		scriptPublicUrl:     os.Getenv("SCRIPT_PUBLIC_URL"),
+
+		skipReverseProxyTest: os.Getenv("SKIP_REVERSE_PROXY_TEST") == "true" && os.Getenv("DEVTOOLS_WS_URL") == "DESKTOP",
 	}
 
 	if loadedConfig.chromeWsUrl == "" {
