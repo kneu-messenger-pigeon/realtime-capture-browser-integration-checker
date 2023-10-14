@@ -9,7 +9,7 @@ require (
 	github.com/chromedp/chromedp v0.9.2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/joho/godotenv v1.5.1
-	github.com/kneu-messenger-pigeon/dekanat-events v0.1.8
+	github.com/kneu-messenger-pigeon/dekanat-events v0.1.9
 	github.com/nakagami/firebirdsql v0.9.6
 	github.com/stretchr/testify v1.8.4
 )
