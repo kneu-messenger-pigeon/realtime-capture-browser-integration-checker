@@ -165,6 +165,14 @@ func verifyLessonOrScoreFormRegularGroup(t *testing.T, expectedGroupName string,
 	assert.Contains(t, currentDiscipline, expectedDisciplineName, "Wrong discipline name")
 }
 
+var replacers = [5]*strings.Replacer{
+	strings.NewReplacer(`+`, ``),
+	strings.NewReplacer(`"`, ``),
+	strings.NewReplacer(`<`, ``),
+	strings.NewReplacer(`>`, ``),
+	strings.NewReplacer(`&`, ``),
+}
+
 func verifyLessonOrScoreFormCustomGroup(t *testing.T, expectedGroupName string) {
 	var currentGroup string
 
@@ -177,7 +185,12 @@ func verifyLessonOrScoreFormCustomGroup(t *testing.T, expectedGroupName string) 
 		return
 	}
 
-	assert.Contains(t, currentGroup, expectedGroupName, "Wrong group name")
+	clearExpectedGroupName := expectedGroupName
+	for _, replacer := range replacers {
+		clearExpectedGroupName = replacer.Replace(clearExpectedGroupName)
+	}
+
+	assert.Contains(t, currentGroup, clearExpectedGroupName, "Wrong group name")
 }
 
 func findVisibleForm(selector string) *cdp.Node {
