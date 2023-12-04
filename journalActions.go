@@ -130,9 +130,9 @@ func chooseDisciplineInRegularGroup(disciplineId uint, semester uint) (err error
 func openLessonPopup(lessonDate time.Time) (err error) {
 	lessonSelector := fmt.Sprintf(
 		`//table[@id="mMarks"]//th[contains(., "%s")][last()]//a[contains(text(), "%s")]`,
-		lessonDate.Format("02.01.2006"), lessonDate.Format("02.01.2006"),
+		lessonDate.Format("2.01.2006"),
+		lessonDate.Format("2.01.2006"),
 	)
-
 	ctx, cancel := context.WithTimeout(chromeCtx, time.Second*5)
 	defer cancel()
 
@@ -141,6 +141,17 @@ func openLessonPopup(lessonDate time.Time) (err error) {
 		chromedp.WaitVisible(`//*[contains(@class, "modal-title")][contains(text(), "Дії для заняття")]`),
 		chromedp.Sleep(time.Millisecond * 400),
 	})
+
+	if err != nil {
+		ctx, cancel = context.WithTimeout(chromeCtx, time.Millisecond*500)
+		defer cancel()
+
+		var displayedLastLessonDate string
+		_ = chromedp.Run(ctx, chromedp.Text(`//table[@id="mMarks"]//th[contains(., ".20")][last()]`, &displayedLastLessonDate))
+
+		fmt.Printf("[debug] lessonSelector: %s\n", lessonSelector)
+		fmt.Printf("[debug] displayedLastLessonDate text: %s\n", displayedLastLessonDate)
+	}
 
 	return err
 }
