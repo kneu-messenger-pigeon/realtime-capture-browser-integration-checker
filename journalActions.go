@@ -166,11 +166,11 @@ func verifyLessonOrScoreFormRegularGroup(t *testing.T, expectedGroupName string,
 }
 
 var replacers = [5]*strings.Replacer{
-	strings.NewReplacer(`+`, ``),
-	strings.NewReplacer(`"`, ``),
-	strings.NewReplacer(`<`, ``),
-	strings.NewReplacer(`>`, ``),
-	strings.NewReplacer(`&`, ``),
+	strings.NewReplacer(`+`, ` `),
+	strings.NewReplacer(`"`, ` `),
+	strings.NewReplacer(`<`, ` `),
+	strings.NewReplacer(`>`, ` `),
+	strings.NewReplacer(`&`, ` `),
 }
 
 func verifyLessonOrScoreFormCustomGroup(t *testing.T, expectedGroupName string) {
