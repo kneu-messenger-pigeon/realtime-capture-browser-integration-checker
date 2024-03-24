@@ -90,5 +90,4 @@ func Test2EditLesson(t *testing.T) {
 	assert.Equal(t, expectedLessonDate, lessonEditEvent.Date, "Wrong date")
 
 	realtimeQueue.AssertNoOtherEvents(t)
-
 }
