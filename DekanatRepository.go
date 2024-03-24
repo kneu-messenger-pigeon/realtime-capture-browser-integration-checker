@@ -75,6 +75,7 @@ func (r *DekanatRepository) GetTeacherWithActiveLesson() *TeacherWithActiveLesso
 		INNER JOIN TSEC ON T_PRJURN.ID_TEACH = TSEC.TID
 		WHERE T_PRJURN.BLOCKED = 0
 		  AND T_PRJURN.FSTATUS = 1
+		  AND T_PRJURN.ID_TEACH NOT IN (974)
 		  AND T_PRJURN.REGDATE > DATEADD(-7 day to CAST((select 'Now' from rdb$database) as date))
 		  AND T_PRJURN.ID_CG IS NULL -- не віртуальна група (не вибіркова дисципліна)
 		  AND (SELECT FIRST 1 1 FROM T_EV_6 WHERE T_PD_CMS.ID = T_EV_6.XI_2) IS NULL -- семестрові (екземенаційні) бали відсутні

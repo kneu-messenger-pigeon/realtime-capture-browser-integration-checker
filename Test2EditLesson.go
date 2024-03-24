@@ -45,9 +45,11 @@ func Test2EditLesson(t *testing.T) {
 	assert.NoError(t, err, "Failed to click on `Вид заняття` radio button")
 
 	if t.Failed() {
+		fmt.Println("Failed to click on `Вид заняття` radio button")
 		return
 	}
 
+	fmt.Println("Clicked on `Вид заняття` radio button")
 	dekanatReverseProxy.ClearBlockedRequests()
 	dekanatReverseProxy.SwitchOffline()
 	defer dekanatReverseProxy.SwitchOnline()
@@ -77,7 +79,12 @@ func Test2EditLesson(t *testing.T) {
 
 	assert.Equal(t, teacherSession.DisciplineId, lessonEditEvent.GetDisciplineId(), "Wrong group id")
 	assert.Equal(t, teacherSession.Semester, lessonEditEvent.GetSemester(), "Wrong semester")
-	assert.Equal(t, teacherSession.LessonId, lessonEditEvent.GetLessonId(), "Wrong semester")
+	assert.Equal(t, teacherSession.LessonId, lessonEditEvent.GetLessonId(), "Wrong lesson id")
+
+	if t.Failed() {
+		fmt.Printf("Wrong event: %+v; expected %+v\n", lessonEditEvent, teacherSession)
+		return
+	}
 
 	expectedLessonDate := teacherSession.LessonDate.Format("02.01.2006")
 	assert.Equal(t, expectedLessonDate, lessonEditEvent.Date, "Wrong date")
