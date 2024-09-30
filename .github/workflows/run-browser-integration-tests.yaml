@@ -2,7 +2,7 @@ name: Run browser integration test
 
 on:
   schedule:
-    - cron: '40 0 * 2-6,9-12 MON'
+    - cron: '40 0 * 3-6,10-12 MON'
   workflow_dispatch:
   workflow_call:
     secrets:
