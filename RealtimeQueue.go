@@ -44,30 +44,14 @@ func CreateRealtimeQueue(t *testing.T) *RealtimeQueue {
 		sqsQueueUrl: &config.sqsQueueUrl,
 		t:           t,
 	}
+	_, err = queue.client.PurgeQueue(context.Background(), &sqs.PurgeQueueInput{
+		QueueUrl: queue.sqsQueueUrl,
+	})
 
-	// clear queue
-	gMInput := &sqs.ReceiveMessageInput{
-		QueueUrl:            queue.sqsQueueUrl,
-		MaxNumberOfMessages: 10,
-		WaitTimeSeconds:     10,
-	}
-	var msgResult *sqs.ReceiveMessageOutput
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	defer cancel()
-
-	for msgResult == nil || len(msgResult.Messages) != 0 {
-		msgResult, err = queue.client.ReceiveMessage(ctx, gMInput)
-
-		if !assert.NoError(t, err, "Failed to get message from SQS: %v \n", err) {
-			return nil
-		}
-
-		for _, message := range msgResult.Messages {
-			queue.Delete(message.ReceiptHandle)
-		}
-
-		fmt.Printf("Clear queue - deleted %d messages\n", len(msgResult.Messages))
+	if err != nil {
+		fmt.Printf("SQS queue for realtime events purged failed: %s\n", err)
+	} else {
+		fmt.Printf("SQS queue for realtime events purged success\n")
 	}
 
 	return queue
