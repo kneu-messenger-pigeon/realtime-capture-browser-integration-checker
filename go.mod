@@ -9,7 +9,7 @@ require (
 	github.com/chromedp/chromedp v0.10.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/joho/godotenv v1.5.1
-	github.com/kneu-messenger-pigeon/dekanat-events v0.1.10
+	github.com/kneu-messenger-pigeon/dekanat-events v0.1.12
 	github.com/nakagami/firebirdsql v0.9.11
 	github.com/stretchr/testify v1.9.0
 )
@@ -29,7 +29,6 @@ require (
 	github.com/aws/smithy-go v1.21.0 // indirect
 	github.com/bytedance/sonic v1.12.3 // indirect
 	github.com/bytedance/sonic/loader v0.2.0 // indirect
-	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/chromedp/sysutil v1.0.0 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
